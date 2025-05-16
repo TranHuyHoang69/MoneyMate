@@ -71,7 +71,7 @@ class _ThuChiPageState extends State<ThuChiPage>
 
       body: TabBarView(
         controller: _tabController,
-        children: [ChiPhiTab(), Center(child: Text('Thu nhập'))],
+        children: [ChiPhiTab(), ExpenseTracker()],
       ),
     );
   }
