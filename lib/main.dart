@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:money_mate/main-thuNhap.dart';
 import 'main-chiPhi.dart';
 
 void main() {
@@ -61,7 +62,7 @@ class _ThuChiPageState extends State<ThuChiPage>
 
       body: TabBarView(
         controller: _tabController,
-        children: [ChiPhiTab(), Center(child: Text('Thu nhập'))],
+        children: [ChiPhiTab(), Text('Thu nhập')],
       ),
     );
   }

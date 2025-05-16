@@ -108,17 +108,17 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children:
-      ['Ngày', 'Tháng', 'Năm'].map((tab) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: ChoiceChip(
-            label: Text(tab),
-            selected: selectedTab == tab,
-            onSelected: (_) => setState(() => selectedTab = tab),
-            selectedColor: Colors.green,
-          ),
-        );
-      }).toList(),
+          ['Ngày', 'Tháng', 'Năm'].map((tab) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: ChoiceChip(
+                label: Text(tab),
+                selected: selectedTab == tab,
+                onSelected: (_) => setState(() => selectedTab = tab),
+                selectedColor: Colors.green,
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -161,52 +161,52 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   Widget _buildIncomeList(double total) {
     return ListView(
       children:
-      selectedDataMap.entries.map((entry) {
-        int index = selectedDataMap.keys.toList().indexOf(entry.key);
-        return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-            vertical: 6,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListTile(
-              onTap:
-                  () => _showEntryDetails(
-                entry,
-              ), // Mở dialog hiển thị thông tin
-              leading: CircleAvatar(
-                backgroundColor: colorList[index],
-                child: Icon(
-                  entry.key == "Phiếu lương"
-                      ? Icons.payments_outlined
-                      : entry.key == "Quà tặng"
-                      ? Icons.card_giftcard
-                      : Icons.account_balance,
-                  color: Colors.white,
+          selectedDataMap.entries.map((entry) {
+            int index = selectedDataMap.keys.toList().indexOf(entry.key);
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 6,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade900,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ListTile(
+                  onTap:
+                      () => _showEntryDetails(
+                        entry,
+                      ), // Mở dialog hiển thị thông tin
+                  leading: CircleAvatar(
+                    backgroundColor: colorList[index],
+                    child: Icon(
+                      entry.key == "Phiếu lương"
+                          ? Icons.payments_outlined
+                          : entry.key == "Quà tặng"
+                          ? Icons.card_giftcard
+                          : Icons.account_balance,
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: Text(
+                    entry.key,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    '${((entry.value / total) * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  trailing: Text(
+                    entry.value >= 1000000
+                        ? '${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
+                        : '${entry.value.toStringAsFixed(0)} đ',
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
-              title: Text(
-                entry.key,
-                style: const TextStyle(color: Colors.white),
-              ),
-              subtitle: Text(
-                '${((entry.value / total) * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(color: Colors.grey),
-              ),
-              trailing: Text(
-                entry.value >= 1000000
-                    ? '${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
-                    : '${entry.value.toStringAsFixed(0)} đ',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
@@ -216,19 +216,19 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
       context: context,
       builder:
           (context) => AlertDialog(
-        title: Text(entry.key),
-        content: Text(
-          entry.value >= 1000000
-              ? 'Số tiền: ${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
-              : 'Số tiền: ${entry.value.toStringAsFixed(0)} đ',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            title: Text(entry.key),
+            content: Text(
+              entry.value >= 1000000
+                  ? 'Số tiền: ${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
+                  : 'Số tiền: ${entry.value.toStringAsFixed(0)} đ',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Đóng'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
