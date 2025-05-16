@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:money_mate/add.dart';
+import 'package:money_mate/model/spend_model.dart';
 import 'main-chiPhi.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(SpendModelAdapter());
+  await Hive.openBox<SpendModelAdapter>('spend');
+
   runApp(const MyApp());
 }
 
@@ -13,7 +21,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: ThuChiPage(),
+      // home: ThuChiPage(),
+      home: TransactionScreenStateless(),
     );
   }
 }
@@ -59,10 +68,10 @@ class _ThuChiPageState extends State<ThuChiPage>
         ),
       ),
 
-      body: TabBarView(
-        controller: _tabController,
-        children: [ChiPhiTab(), Center(child: Text('Thu nhập'))],
-      ),
+      // body: TabBarView(
+      //   controller: _tabController,
+      //   children: [ChiPhiTab(), Center(child: Text('Thu nhập'))],
+      // ),
     );
   }
 }
