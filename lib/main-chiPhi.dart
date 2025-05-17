@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'add.dart';
+import 'chiTietGiaoDich/chiTietGiaoDich.dart';
 
 class ChiPhiTab extends StatefulWidget {
   @override
@@ -180,6 +182,28 @@ class _ChiPhiTabState extends State<ChiPhiTab>
                       title: Text(item['label']),
                       subtitle: Text('${item['percent']}%'),
                       trailing: Text('${formatter.format(item['amount'])} ₫'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => TransactionDetailScreen(
+                                  transaction: {
+                                    'amount': item['amount'].toString(),
+                                    'category': item['label'],
+                                    'date': DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(DateTime.now()),
+                                    'time': DateFormat(
+                                      'HH:mm',
+                                    ).format(DateTime.now()),
+                                    'type':
+                                        'Chi tiêu', // hoặc bạn có thể tùy chỉnh theo logic app
+                                  },
+                                ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 }).toList(),
@@ -220,7 +244,12 @@ class _ChiPhiTabState extends State<ChiPhiTab>
             right: 20,
             child: FloatingActionButton(
               onPressed: () {
-                // Xử lý khi nhấn nút thêm chi phí
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TransactionScreenStateless(),
+                  ),
+                );
               },
               backgroundColor: Colors.yellow.shade700,
               child: const Icon(Icons.add, color: Colors.black),

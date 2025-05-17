@@ -3,6 +3,7 @@
 // button "+" để thêm thu nhập
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
+import 'add.dart';
 
 void main() => runApp(const MyApp());
 
@@ -148,7 +149,12 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
           FloatingActionButton(
             backgroundColor: Colors.yellow,
             onPressed: () {
-              // TODO: Hiển thị form thêm thu nhập - để người khác làm tiếp
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TransactionScreenStateless(),
+                ),
+              );
             },
             child: const Icon(Icons.add, color: Colors.black),
           ),
