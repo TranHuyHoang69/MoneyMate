@@ -54,14 +54,25 @@ class _ThuChiPageState extends State<ThuChiPage>
       appBar: AppBar(
         backgroundColor: Colors.green.shade800,
         centerTitle: true,
-        title: Row(
+        title: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.account_balance_wallet),
-            SizedBox(width: 8),
-            Text("Tổng cộng", style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.account_balance_wallet),
+                SizedBox(width: 8),
+                Text(
+                  "Tổng cộng",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 4),
+            Text("1.200.000đ", style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
+        actions: [IconButton(icon: Icon(Icons.list_alt), onPressed: () {})],
         bottom: TabBar(
           controller: _tabController,
           tabs: [Tab(text: 'Chi phí'), Tab(text: 'Thu Nhập')],

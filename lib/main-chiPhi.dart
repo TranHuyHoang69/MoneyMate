@@ -197,8 +197,7 @@ class _ChiPhiTabState extends State<ChiPhiTab>
                                     'time': DateFormat(
                                       'HH:mm',
                                     ).format(DateTime.now()),
-                                    'type':
-                                        'Chi tiêu', // hoặc bạn có thể tùy chỉnh theo logic app
+                                    'type': 'Chi tiêu',
                                   },
                                 ),
                           ),
