@@ -137,7 +137,7 @@ class _ChiPhiTabState extends State<ChiPhiTab>
   Widget _buildPieChartContent(String tabKey) {
     final data = dataByTab[tabKey]!;
     final total = data.fold(0, (sum, item) => sum + item['amount'] as int);
-    final formatter = NumberFormat.decimalPattern(); // Ex: 1,200,000
+    final formatter = NumberFormat.decimalPattern();
 
     return Column(
       children: [
