@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:money_mate/constant/type_transaction.dart';
 import 'package:money_mate/model/spend_model.dart';
 import 'package:money_mate/model/spend_service.dart';
 class SpendPage extends StatefulWidget {
@@ -170,12 +171,13 @@ class _SpendPageState extends State<SpendPage> {
                         fontSize: 13.0
                     );
                   }else{
-                    // var newSpend=new SpendModel(
-                    //     amount: int.parse(_amountController.text.trim().toString()),
-                    //     category: _selectedCategory,
-                    //     date: DateTime.parse(_dateController.text.trim().toString()),
-                    //     note: _noteController.text.trim().toString());
-                    // _spendService.addSpend(newSpend);
+                    var newSpend=new SpendModel(
+                        amount: int.parse(_amountController.text.trim().toString()),
+                        category: _selectedCategory,
+                        date: DateTime.parse(_dateController.text.trim().toString()),
+                        note: _noteController.text.trim().toString(),
+                        type: TypeTransaction.SPEND);
+                    _spendService.addSpend(newSpend);
                     Fluttertoast.showToast(
                         msg: "Thêm thành công",
                         toastLength: Toast.LENGTH_SHORT,
@@ -185,7 +187,7 @@ class _SpendPageState extends State<SpendPage> {
                         textColor: Colors.white,
                         fontSize: 13.0
                     );
-                    Navigator.pop(context);
+                    Navigator.pop(context,true);
                   }
                 },
                 style: ElevatedButton.styleFrom(

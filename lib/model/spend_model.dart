@@ -16,10 +16,14 @@ class SpendModel extends HiveObject {
   @HiveField(3)
   String note;
 
+  @HiveField(4)
+  int type;
+
   SpendModel({
     required this.amount,
     required this.category,
     required this.date,
     required this.note,
+    required this.type
   });
 }

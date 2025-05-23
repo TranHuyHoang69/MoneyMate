@@ -1,240 +1,234 @@
-// note : Hiển thị Ngày, tháng , năm, cùng với biểu đồ tròn
-// các danh mục thu nhập đã thêm
-// button "+" để thêm thu nhập
 import 'package:flutter/material.dart';
-import 'package:pie_chart/pie_chart.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import 'package:money_mate/constant/type_transaction.dart';
+import 'package:money_mate/model/spend_service.dart';
 import 'add.dart';
+import 'chiTietGiaoDich/chiTietGiaoDich.dart';
+import 'model/spend_model.dart';
 
-void main() => runApp(const MyApp());
+class ThuNhapTab extends StatefulWidget {
+  @override
+  State<ThuNhapTab> createState() => _ChiPhiTabState();
+}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _ChiPhiTabState extends State<ThuNhapTab>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  final List<String> tabs = ["Ngày", "Tháng", "Năm"];
+
+  Map<String, List<Map<String, dynamic>>>? dataByTab; // dữ liệu động
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Quản lý chi tiêu',
-      theme: ThemeData.dark(),
-      home: const ExpenseTracker(),
-    );
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: tabs.length, vsync: this);
+    loadData();
   }
-}
 
-class ExpenseTracker extends StatefulWidget {
-  const ExpenseTracker({super.key});
+  Future<void> loadData() async {
+    // Ví dụ lấy dữ liệu từ Hive box
+    // final box = Hive.box<SpendModel>('spends');
+    // List<SpendModel> spends = box.values.toList();
 
-  @override
-  State<ExpenseTracker> createState() => _ExpenseTrackerState();
-}
+    // Tạm thời giả lập lấy dữ liệu async
+    List<SpendModel> spends = await fetchSpendsFromService();
 
-class _ExpenseTrackerState extends State<ExpenseTracker> {
-  // Dữ liệu mẫu cho các tab: Ngày, Tháng, Năm
-  final Map<String, double> dataMapNgay = {
-    "Phiếu lương": 2000000,
-    "Quà tặng": 300000,
-    "Sở thích": 50000,
-  };
+    final convertedData = convertSpendModelsToDataByTab(spends);
+    setState(() {
+      dataByTab = convertedData;
+    });
+  }
 
-  final Map<String, double> dataMapThang = {
-    "Phiếu lương": 4000000,
-    "Quà tặng": 1180000,
-    "Sở thích": 164840,
-  };
+  // Giả lập hàm async lấy dữ liệu (bạn thay bằng lấy từ Hive thực tế)
+  Future<List<SpendModel>> fetchSpendsFromService() async {
+    // await Future.delayed(const Duration(milliseconds: 500)); // giả lập delay
+    return SpendService().getAllSpends();
+    // return []; // trả về danh sách SpendModel thực tế của bạn
+  }
 
-  final Map<String, double> dataMapNam = {
-    "Phiếu lương": 45000000,
-    "Quà tặng": 5200000,
-    "Sở thích": 1000000,
-  };
-
-  final List<Color> colorList = [Colors.blue, Colors.pink, Colors.green];
-  String selectedTab = 'Tháng';
-
-  // Lấy đúng dữ liệu theo tab đang chọn
-  Map<String, double> get selectedDataMap {
-    switch (selectedTab) {
-      case 'Ngày':
-        return dataMapNgay;
-      case 'Năm':
-        return dataMapNam;
-      default:
-        return dataMapThang;
+  Widget _buildPieChartContent(String tabKey) {
+    if (dataByTab == null) {
+      return const Center(child: CircularProgressIndicator());
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final double total = selectedDataMap.values.fold(0, (a, b) => a + b);
+    final data = dataByTab![tabKey]!;
+    final total = data.fold(0, (sum, item) => sum + item['amount'] as int);
+    final formatter = NumberFormat.decimalPattern();
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: Column(
-          children: [
-            const Text(
-              'Tổng cộng',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+    if (data.isEmpty) {
+      return const Center(child: Text('Không có dữ liệu'));
+    }
+
+    return Column(
+      children: [
+        AspectRatio(
+          aspectRatio: 1.4,
+          child: PieChart(
+            PieChartData(
+              centerSpaceRadius: 50,
+              sectionsSpace: 2,
+              sections: data.map((item) {
+                return PieChartSectionData(
+                  color: item['color'],
+                  value: item['amount'].toDouble(),
+                  title: '',
+                  radius: 50,
+                );
+              }).toList(),
             ),
-            Text(
-              '${(total + 570771).toStringAsFixed(0)} đ',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          const Text(
-            'THU NHẬP',
-            style: TextStyle(color: Colors.greenAccent, fontSize: 18),
-          ),
-          const SizedBox(height: 12),
-          _buildTabSelector(),
-          const SizedBox(height: 12),
-          _buildChartSection(total),
-          const SizedBox(height: 12),
-          Expanded(child: _buildIncomeList(total)),
-        ],
-      ),
-    );
-  }
-
-  // Widget hiển thị lựa chọn tab Ngày / Tháng / Năm
-  Widget _buildTabSelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children:
-          ['Ngày', 'Tháng', 'Năm'].map((tab) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: ChoiceChip(
-                label: Text(tab),
-                selected: selectedTab == tab,
-                onSelected: (_) => setState(() => selectedTab = tab),
-                selectedColor: Colors.green,
-              ),
-            );
-          }).toList(),
-    );
-  }
-
-  // Widget hiển thị biểu đồ và nút + (để trống chờ người khác xử lý form thêm danh mục)
-  Widget _buildChartSection(double total) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: PieChart(
-              dataMap: selectedDataMap,
-              animationDuration: const Duration(milliseconds: 800),
-              chartRadius: MediaQuery.of(context).size.width / 2.5,
-              colorList: colorList,
-              chartType: ChartType.ring,
-              ringStrokeWidth: 32,
-              // TẮT hiển thị số tiền trên biểu đồ
-              chartValuesOptions: const ChartValuesOptions(
-                showChartValues: false,
-              ),
-              legendOptions: const LegendOptions(showLegends: false),
-              centerText: "${(total / 1000000).toStringAsFixed(2)} Tr đ",
-            ),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton(
-            backgroundColor: Colors.yellow,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TransactionScreenStateless(),
+        Text(
+          '${formatter.format(total)} ₫',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView(
+            children: data.map((item) {
+              return Card(
+                elevation: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: item['color'],
+                    child: Icon(item['icon'], color: Colors.white),
+                  ),
+                  title: Text(item['label']),
+                  subtitle: Text('${item['percent']}%'),
+                  trailing: Text('${formatter.format(item['amount'])} ₫'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TransactionDetailScreen(
+                          transaction: {
+                            'amount': item['amount'].toString(),
+                            'category': item['label'],
+                            'date': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                            'time': DateFormat('HH:mm').format(DateTime.now()),
+                            'type': 'Chi tiêu',
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
-            },
-            child: const Icon(Icons.add, color: Colors.black),
+            }).toList(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Danh sách các danh mục thu nhập, bấm vào sẽ hiện thông tin chi tiết
-  Widget _buildIncomeList(double total) {
-    return ListView(
-      children:
-          selectedDataMap.entries.map((entry) {
-            int index = selectedDataMap.keys.toList().indexOf(entry.key);
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 6,
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade900,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ListTile(
-                  onTap:
-                      () => _showEntryDetails(
-                        entry,
-                      ), // Mở dialog hiển thị thông tin
-                  leading: CircleAvatar(
-                    backgroundColor: colorList[index],
-                    child: Icon(
-                      entry.key == "Phiếu lương"
-                          ? Icons.payments_outlined
-                          : entry.key == "Quà tặng"
-                          ? Icons.card_giftcard
-                          : Icons.account_balance,
-                      color: Colors.white,
-                    ),
-                  ),
-                  title: Text(
-                    entry.key,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    '${((entry.value / total) * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  trailing: Text(
-                    entry.value >= 1000000
-                        ? '${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
-                        : '${entry.value.toStringAsFixed(0)} đ',
-                    style: const TextStyle(color: Colors.white),
-                  ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Container(
+                color: Colors.white,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.green.shade800,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: Colors.green.shade800,
+                  tabs: tabs.map((tab) => Tab(text: tab)).toList(),
                 ),
               ),
-            );
-          }).toList(),
-    );
-  }
-
-  // Dialog hiển thị thông tin danh mục khi bấm vào mục thu nhập
-  void _showEntryDetails(MapEntry<String, double> entry) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(entry.key),
-            content: Text(
-              entry.value >= 1000000
-                  ? 'Số tiền: ${(entry.value / 1000000).toStringAsFixed(2)} Tr đ'
-                  : 'Số tiền: ${entry.value.toStringAsFixed(0)} đ',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Đóng'),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: tabs.map((tab) => _buildPieChartContent(tab)).toList(),
+                ),
               ),
             ],
           ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TransactionScreenStateless(),
+                  ),
+                ).then((result){
+                  if (result == true) {
+                    loadData();
+                  }
+                });
+              },
+              backgroundColor: Colors.yellow.shade700,
+              child: const Icon(Icons.add, color: Colors.black),
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+
+
+Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(List<SpendModel> spends) {
+  final now = DateTime.now();
+
+  bool isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool isSameMonth(DateTime a, DateTime b) => a.year == b.year && a.month == b.month;
+  bool isSameYear(DateTime a, DateTime b) => a.year == b.year;
+
+  final categoryMap = {
+    1: {'label': 'Phiếu lương', 'color': Colors.redAccent, 'icon': Icons.paid},
+    2: {'label': 'Quà tặng', 'color': Colors.indigoAccent, 'icon': Icons.card_giftcard},
+    3: {'label': 'Sở thích', 'color': Colors.pinkAccent, 'icon': Icons.interests},
+    4: {'label': 'Khác', 'color': Colors.grey, 'icon': Icons.help},
+  };
+
+  // Lọc spends theo type == 1 trước
+  final filteredSpends = spends.where((s) => s.type == TypeTransaction.INCOME).toList();
+
+  // Lọc chi tiêu theo từng tab dựa trên filteredSpends
+  Map<String, List<SpendModel>> spendsByTab = {
+    'Ngày': filteredSpends.where((s) => isSameDay(s.date, now)).toList(),
+    'Tháng': filteredSpends.where((s) => isSameMonth(s.date, now)).toList(),
+    'Năm': filteredSpends.where((s) => isSameYear(s.date, now)).toList(),
+  };
+
+  Map<String, List<Map<String, dynamic>>> dataByTab = {};
+
+  for (String tab in spendsByTab.keys) {
+    final tabSpends = spendsByTab[tab]!;
+
+    final totalAmount = tabSpends.fold(0, (sum, s) => sum + s.amount);
+
+    final Map<int, int> amountByCategory = {};
+    for (var s in tabSpends) {
+      amountByCategory[s.category] = (amountByCategory[s.category] ?? 0) + s.amount;
+    }
+
+    final List<Map<String, dynamic>> categoryList = amountByCategory.entries.map((entry) {
+      final id = entry.key;
+      final amount = entry.value;
+      final percent = totalAmount > 0 ? (amount * 100 / totalAmount).round() : 0;
+      final category = categoryMap[id] ?? categoryMap[9]!; // fallback: Khác
+      return {
+        'label': category['label'],
+        'percent': percent,
+        'amount': amount,
+        'color': category['color'],
+        'icon': category['icon'],
+      };
+    }).toList();
+
+    dataByTab[tab] = categoryList;
+  }
+
+  return dataByTab;
 }
