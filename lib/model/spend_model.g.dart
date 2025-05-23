@@ -21,13 +21,14 @@ class SpendModelAdapter extends TypeAdapter<SpendModel> {
       category: fields[1] as int,
       date: fields[2] as DateTime,
       note: fields[3] as String,
+      type: fields[4] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, SpendModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.amount)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class SpendModelAdapter extends TypeAdapter<SpendModel> {
       ..writeByte(2)
       ..write(obj.date)
       ..writeByte(3)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(4)
+      ..write(obj.type);
   }
 
   @override

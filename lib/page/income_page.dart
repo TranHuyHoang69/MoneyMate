@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:money_mate/constant/type_transaction.dart';
+
+import '../model/spend_model.dart';
+import '../model/spend_service.dart';
+
 
 class IncomePage extends StatefulWidget {
   @override
@@ -7,7 +13,15 @@ class IncomePage extends StatefulWidget {
 }
 
 class _IncomePageState extends State<IncomePage> {
+  int _selectedCategory = options[0].category;
+  //controller
   TextEditingController _dateController = TextEditingController();
+  TextEditingController _amountController=TextEditingController();
+  TextEditingController _noteController=TextEditingController();
+
+  //spend service
+  final SpendService _spendService=SpendService();
+
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +48,7 @@ class _IncomePageState extends State<IncomePage> {
                   SizedBox(
                     width: 180,
                     child: TextField(
+                      controller: _amountController,
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -53,6 +68,7 @@ class _IncomePageState extends State<IncomePage> {
                         ),
                       ),
                     ),
+
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -78,7 +94,9 @@ class _IncomePageState extends State<IncomePage> {
             ),
 
             const SizedBox(height: 10),
-            IconSelector(),
+            IconSelector(onCategorySelected: (category) {
+              _selectedCategory = category;
+            },),
 
             const SizedBox(height: 10),
 
@@ -124,6 +142,7 @@ class _IncomePageState extends State<IncomePage> {
             ),
             const SizedBox(height: 8),
             TextField(
+              controller: _noteController,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
                 hintText: 'Nhập ghi chú...',
@@ -143,8 +162,36 @@ class _IncomePageState extends State<IncomePage> {
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  print('Nút được nhấn');
+                onPressed:(){
+                  if(_amountController.text.isEmpty || _dateController.text.isEmpty || _noteController.text.isEmpty){
+                    Fluttertoast.showToast(
+                        msg: "Vui lòng nhập đủ thông tin",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.blue,
+                        textColor: Colors.white,
+                        fontSize: 13.0
+                    );
+                  }else{
+                    var newSpend=new SpendModel(
+                        amount: int.parse(_amountController.text.trim().toString()),
+                        category: _selectedCategory,
+                        date: DateTime.parse(_dateController.text.trim().toString()),
+                        note: _noteController.text.trim().toString(),
+                        type: TypeTransaction.INCOME);
+                    _spendService.addSpend(newSpend);
+                    Fluttertoast.showToast(
+                        msg: "Thêm thành công",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.blue,
+                        textColor: Colors.white,
+                        fontSize: 13.0
+                    );
+                    Navigator.pop(context,true);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -178,24 +225,31 @@ class _IncomePageState extends State<IncomePage> {
       });
     }
   }
+
+
 }
 
 class IconOption {
   final IconData icon;
   final String label;
-
-  IconOption(this.icon, this.label);
+  final int category;
+  IconOption(this.icon, this.label,this.category);
 }
 
 final List<IconOption> options = [
-  IconOption(Icons.paid, "Phiếu lương"),
-  IconOption(Icons.card_giftcard, "Quà tặng"),
-  IconOption(Icons.interests, "Sở thích"),
-  IconOption(Icons.help, "Khác"),
+  IconOption(Icons.paid, "Phiếu lương",1),
+  IconOption(Icons.card_giftcard, "Quà tặng",2),
+  IconOption(Icons.interests, "Sở thích",3),
+  IconOption(Icons.help, "Khác",4),
 ];
 
 class IconSelector extends StatefulWidget {
-  const IconSelector({super.key});
+
+  final Function(int category) onCategorySelected; // nhận callback
+
+  const IconSelector({super.key, required this.onCategorySelected});
+
+  // const IconSelector({super.key});
 
 
   @override
@@ -203,7 +257,17 @@ class IconSelector extends StatefulWidget {
 
 }
 class _IconSelectorState extends State<IconSelector> {
-  String? selectedLabel; // giữ nhãn của icon được chọn
+
+  int? selectedLabel;
+
+  @override
+  void initState() {
+    super.initState();
+    if (options.isNotEmpty) {
+      selectedLabel = options[0].category;
+      widget.onCategorySelected(selectedLabel!); // Báo ngay khi mở widget
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -215,14 +279,15 @@ class _IconSelectorState extends State<IconSelector> {
           spacing: 24,
           runSpacing: 12,
           children: options.map((item) {
-            final isSelected = selectedLabel == item.label;
+            final isSelected = selectedLabel == item.category;
 
             return GestureDetector(
               onTap: () {
                 setState(() {
-                  selectedLabel = item.label;
+                  selectedLabel = item.category;
+                  widget.onCategorySelected(selectedLabel!);
                 });
-                print("Bạn chọn: ${item.label}");
+                // print("Bạn chọn: ${item.label}");
               },
               child: Container(
                 width: 80,

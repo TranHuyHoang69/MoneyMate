@@ -70,7 +70,7 @@ class _ThuChiPageState extends State<ThuChiPage>
 
       body: TabBarView(
         controller: _tabController,
-        children: [ChiPhiTab(), ExpenseTracker()],
+        children: [ChiPhiTab(), ThuNhapTab()],
       ),
     );
   }
