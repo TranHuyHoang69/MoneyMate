@@ -69,14 +69,15 @@ class _ChiPhiTabState extends State<ThuNhapTab>
             PieChartData(
               centerSpaceRadius: 50,
               sectionsSpace: 2,
-              sections: data.map((item) {
-                return PieChartSectionData(
-                  color: item['color'],
-                  value: item['amount'].toDouble(),
-                  title: '',
-                  radius: 50,
-                );
-              }).toList(),
+              sections:
+                  data.map((item) {
+                    return PieChartSectionData(
+                      color: item['color'],
+                      value: item['amount'].toDouble(),
+                      title: '',
+                      radius: 50,
+                    );
+                  }).toList(),
             ),
           ),
         ),
@@ -87,37 +88,46 @@ class _ChiPhiTabState extends State<ThuNhapTab>
         const SizedBox(height: 10),
         Expanded(
           child: ListView(
-            children: data.map((item) {
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: item['color'],
-                    child: Icon(item['icon'], color: Colors.white),
-                  ),
-                  title: Text(item['label']),
-                  subtitle: Text('${item['percent']}%'),
-                  trailing: Text('${formatter.format(item['amount'])} ₫'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TransactionDetailScreen(
-                          transaction: {
-                            'amount': item['amount'].toString(),
-                            'category': item['label'],
-                            'date': DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                            'time': DateFormat('HH:mm').format(DateTime.now()),
-                            'type': 'Chi tiêu',
-                          },
-                        ),
+            children:
+                data.map((item) {
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: item['color'],
+                        child: Icon(item['icon'], color: Colors.white),
                       ),
-                    );
-                  },
-                ),
-              );
-            }).toList(),
+                      title: Text(item['label']),
+                      subtitle: Text('${item['percent']}%'),
+                      trailing: Text('${formatter.format(item['amount'])} ₫'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => TransactionDetailScreen(
+                                  transaction: {
+                                    'amount': item['amount'].toString(),
+                                    'category': item['label'],
+                                    'date': DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(DateTime.now()),
+                                    'time': DateFormat(
+                                      'HH:mm',
+                                    ).format(DateTime.now()),
+                                    'type': 'Chi tiêu',
+                                  },
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -144,7 +154,8 @@ class _ChiPhiTabState extends State<ThuNhapTab>
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
-                  children: tabs.map((tab) => _buildPieChartContent(tab)).toList(),
+                  children:
+                      tabs.map((tab) => _buildPieChartContent(tab)).toList(),
                 ),
               ),
             ],
@@ -159,7 +170,7 @@ class _ChiPhiTabState extends State<ThuNhapTab>
                   MaterialPageRoute(
                     builder: (context) => const TransactionScreenStateless(),
                   ),
-                ).then((result){
+                ).then((result) {
                   if (result == true) {
                     loadData();
                   }
@@ -175,24 +186,35 @@ class _ChiPhiTabState extends State<ThuNhapTab>
   }
 }
 
-
-
-Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(List<SpendModel> spends) {
+Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(
+  List<SpendModel> spends,
+) {
   final now = DateTime.now();
 
-  bool isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
-  bool isSameMonth(DateTime a, DateTime b) => a.year == b.year && a.month == b.month;
+  bool isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool isSameMonth(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month;
   bool isSameYear(DateTime a, DateTime b) => a.year == b.year;
 
   final categoryMap = {
     1: {'label': 'Phiếu lương', 'color': Colors.redAccent, 'icon': Icons.paid},
-    2: {'label': 'Quà tặng', 'color': Colors.indigoAccent, 'icon': Icons.card_giftcard},
-    3: {'label': 'Sở thích', 'color': Colors.pinkAccent, 'icon': Icons.interests},
+    2: {
+      'label': 'Quà tặng',
+      'color': Colors.indigoAccent,
+      'icon': Icons.card_giftcard,
+    },
+    3: {
+      'label': 'Sở thích',
+      'color': Colors.pinkAccent,
+      'icon': Icons.interests,
+    },
     4: {'label': 'Khác', 'color': Colors.grey, 'icon': Icons.help},
   };
 
   // Lọc spends theo type == 1 trước
-  final filteredSpends = spends.where((s) => s.type == TypeTransaction.INCOME).toList();
+  final filteredSpends =
+      spends.where((s) => s.type == TypeTransaction.INCOME).toList();
 
   // Lọc chi tiêu theo từng tab dựa trên filteredSpends
   Map<String, List<SpendModel>> spendsByTab = {
@@ -210,22 +232,25 @@ Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(List<Spend
 
     final Map<int, int> amountByCategory = {};
     for (var s in tabSpends) {
-      amountByCategory[s.category] = (amountByCategory[s.category] ?? 0) + s.amount;
+      amountByCategory[s.category] =
+          (amountByCategory[s.category] ?? 0) + s.amount;
     }
 
-    final List<Map<String, dynamic>> categoryList = amountByCategory.entries.map((entry) {
-      final id = entry.key;
-      final amount = entry.value;
-      final percent = totalAmount > 0 ? (amount * 100 / totalAmount).round() : 0;
-      final category = categoryMap[id] ?? categoryMap[9]!; // fallback: Khác
-      return {
-        'label': category['label'],
-        'percent': percent,
-        'amount': amount,
-        'color': category['color'],
-        'icon': category['icon'],
-      };
-    }).toList();
+    final List<Map<String, dynamic>> categoryList =
+        amountByCategory.entries.map((entry) {
+          final id = entry.key;
+          final amount = entry.value;
+          final percent =
+              totalAmount > 0 ? (amount * 100 / totalAmount).round() : 0;
+          final category = categoryMap[id] ?? categoryMap[9]!; // fallback: Khác
+          return {
+            'label': category['label'],
+            'percent': percent,
+            'amount': amount,
+            'color': category['color'],
+            'icon': category['icon'],
+          };
+        }).toList();
 
     dataByTab[tab] = categoryList;
   }
