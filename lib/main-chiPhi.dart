@@ -14,11 +14,96 @@ class ChiPhiTab extends StatefulWidget {
 
 class _ChiPhiTabState extends State<ChiPhiTab>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  DateTime selectedDate = DateTime.now();
+  DateTime selectedMonth = DateTime.now();
+  int selectedYear = DateTime.now().year;
 
+  List<String> getAvailableDays() {
+    return groupedData?['Ngày']?.keys.toList() ?? [];
+  }
+
+  List<String> getAvailableMonths() {
+    return groupedData?['Tháng']?.keys.toList() ?? [];
+  }
+
+  List<String> getAvailableYears() {
+    return groupedData?['Năm']?.keys.toList() ?? [];
+  }
+
+  void goToPreviousDay() {
+    final days = getAvailableDays();
+    int currentIndex = days.indexOf(
+      DateFormat('yyyy-MM-dd').format(selectedDate),
+    );
+    if (currentIndex + 1 < days.length) {
+      setState(() {
+        selectedDate = DateTime.parse(days[currentIndex + 1]);
+      });
+    }
+  }
+
+  void goToNextDay() {
+    final days = getAvailableDays();
+    int currentIndex = days.indexOf(
+      DateFormat('yyyy-MM-dd').format(selectedDate),
+    );
+    if (currentIndex - 1 >= 0) {
+      setState(() {
+        selectedDate = DateTime.parse(days[currentIndex - 1]);
+      });
+    }
+  }
+
+  void goToPreviousMonth() {
+    final months = getAvailableMonths();
+    int currentIndex = months.indexOf(
+      DateFormat('yyyy-MM-01').format(selectedMonth),
+    );
+    if (currentIndex + 1 < months.length) {
+      setState(() {
+        selectedMonth = DateTime.parse(months[currentIndex + 1]);
+      });
+    }
+  }
+
+  void goToNextMonth() {
+    final months = getAvailableMonths();
+    int currentIndex = months.indexOf(
+      DateFormat('yyyy-MM-01').format(selectedMonth),
+    );
+    if (currentIndex - 1 >= 0) {
+      setState(() {
+        selectedMonth = DateTime.parse(months[currentIndex - 1]);
+      });
+    }
+  }
+
+  void goToPreviousYear() {
+    final years = getAvailableYears();
+    int currentIndex = years.indexOf(selectedYear.toString());
+    if (currentIndex + 1 < years.length) {
+      setState(() {
+        selectedYear = int.parse(years[currentIndex + 1]);
+      });
+    }
+  }
+
+  void goToNextYear() {
+    final years = getAvailableYears();
+    int currentIndex = years.indexOf(selectedYear.toString());
+    if (currentIndex - 1 >= 0) {
+      setState(() {
+        selectedYear = int.parse(years[currentIndex - 1]);
+      });
+    }
+  }
+
+  late TabController _tabController;
   final List<String> tabs = ["Ngày", "Tháng", "Năm"];
 
-  Map<String, List<Map<String, dynamic>>>? dataByTab; // dữ liệu động
+  Map<String, Map<String, List<Map<String, dynamic>>>>? groupedData;
+  List<String> availableDays = [];
+  int currentDayIndex = 0;
 
   @override
   void initState() {
@@ -28,110 +113,18 @@ class _ChiPhiTabState extends State<ChiPhiTab>
   }
 
   Future<void> loadData() async {
-    // Ví dụ lấy dữ liệu từ Hive box
-    // final box = Hive.box<SpendModel>('spends');
-    // List<SpendModel> spends = box.values.toList();
+    List<SpendModel> spends = await SpendService().getAllSpends();
+    spends = spends.where((s) => s.type == TypeTransaction.SPEND).toList();
+    final data = groupSpendModelsByTime(spends);
 
-    // Tạm thời giả lập lấy dữ liệu async
-    List<SpendModel> spends = await fetchSpendsFromService();
-
-    final convertedData = convertSpendModelsToDataByTab(spends);
     setState(() {
-      dataByTab = convertedData;
+      groupedData = data;
+      if (groupedData!["Ngày"] != null && groupedData!["Ngày"]!.isNotEmpty) {
+        availableDays =
+            groupedData!["Ngày"]!.keys.toList()..sort((a, b) => b.compareTo(a));
+        currentDayIndex = 0;
+      }
     });
-  }
-
-  // Giả lập hàm async lấy dữ liệu (bạn thay bằng lấy từ Hive thực tế)
-  Future<List<SpendModel>> fetchSpendsFromService() async {
-    // await Future.delayed(const Duration(milliseconds: 500)); // giả lập delay
-    return SpendService().getAllSpends();
-    // return []; // trả về danh sách SpendModel thực tế của bạn
-  }
-
-  Widget _buildPieChartContent(String tabKey) {
-    if (dataByTab == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final data = dataByTab![tabKey]!;
-    final total = data.fold(0, (sum, item) => sum + item['amount'] as int);
-    final formatter = NumberFormat.decimalPattern();
-
-    if (data.isEmpty) {
-      return const Center(child: Text('Không có dữ liệu'));
-    }
-
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: 1.4,
-          child: PieChart(
-            PieChartData(
-              centerSpaceRadius: 50,
-              sectionsSpace: 2,
-              sections:
-                  data.map((item) {
-                    return PieChartSectionData(
-                      color: item['color'],
-                      value: item['amount'].toDouble(),
-                      title: '',
-                      radius: 50,
-                    );
-                  }).toList(),
-            ),
-          ),
-        ),
-        Text(
-          '${formatter.format(total)} ₫',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: ListView(
-            children:
-                data.map((item) {
-                  return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: item['color'],
-                        child: Icon(item['icon'], color: Colors.white),
-                      ),
-                      title: Text(item['label']),
-                      subtitle: Text('${item['percent']}%'),
-                      trailing: Text('${formatter.format(item['amount'])} ₫'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => TransactionDetailScreen(
-                                  transaction: {
-                                    'amount': item['amount'].toString(),
-                                    'category': item['label'],
-                                    'date': DateFormat(
-                                      'dd/MM/yyyy',
-                                    ).format(DateTime.now()),
-                                    'time': DateFormat(
-                                      'HH:mm',
-                                    ).format(DateTime.now()),
-                                    'type': 'Chi tiêu',
-                                  },
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }).toList(),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -155,7 +148,144 @@ class _ChiPhiTabState extends State<ChiPhiTab>
                 child: TabBarView(
                   controller: _tabController,
                   children:
-                      tabs.map((tab) => _buildPieChartContent(tab)).toList(),
+                      tabs.map((tab) {
+                        if (groupedData == null) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (tab == 'Ngày') {
+                          String key = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(selectedDate);
+                          List<Map<String, dynamic>> data =
+                              groupedData![tab]?[key] ?? [];
+
+                          return Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: goToPreviousDay,
+                                    icon: const Icon(Icons.arrow_left),
+                                  ),
+                                  Text(
+                                    DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(selectedDate),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: goToNextDay,
+                                    icon: const Icon(Icons.arrow_right),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: _buildPieChart(data)),
+                            ],
+                          );
+                        }
+                        if (tab == 'Tháng') {
+                          String key = DateFormat(
+                            'yyyy-MM-01',
+                          ).format(selectedMonth);
+                          List<Map<String, dynamic>> data =
+                              groupedData![tab]?[key] ?? [];
+
+                          return Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: goToPreviousMonth,
+                                    icon: const Icon(Icons.arrow_left),
+                                  ),
+                                  Text(
+                                    DateFormat('MM/yyyy').format(selectedMonth),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: goToNextMonth,
+                                    icon: const Icon(Icons.arrow_right),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: _buildPieChart(data)),
+                            ],
+                          );
+                        }
+
+                        if (tab == 'Năm') {
+                          String key = selectedYear.toString();
+                          List<Map<String, dynamic>> data =
+                              groupedData![tab]?[key] ?? [];
+
+                          return Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: goToPreviousYear,
+                                    icon: const Icon(Icons.arrow_left),
+                                  ),
+                                  Text(
+                                    '$selectedYear',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: goToNextYear,
+                                    icon: const Icon(Icons.arrow_right),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: _buildPieChart(data)),
+                            ],
+                          );
+                        }
+
+                        // Với Tháng & Năm giữ nguyên
+                        return ListView(
+                          children:
+                              groupedData![tab]!.entries.map((entry) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Text(
+                                        tab == 'Tháng'
+                                            ? DateFormat(
+                                              'MM/yyyy',
+                                            ).format(DateTime.parse(entry.key))
+                                            : entry.key,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    _buildPieChart(entry.value),
+                                  ],
+                                );
+                              }).toList(),
+                        );
+                      }).toList(),
                 ),
               ),
             ],
@@ -184,20 +314,68 @@ class _ChiPhiTabState extends State<ChiPhiTab>
       ),
     );
   }
+
+  Widget _buildPieChart(List<Map<String, dynamic>> data) {
+    final total = data.fold(0, (sum, item) => sum + item['amount'] as int);
+    final formatter = NumberFormat.decimalPattern();
+
+    if (data.isEmpty) {
+      return const Center(child: Text('Không có dữ liệu'));
+    }
+
+    return ListView(
+      shrinkWrap: true,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(12),
+      children: [
+        AspectRatio(
+          aspectRatio: 1.4,
+          child: PieChart(
+            PieChartData(
+              centerSpaceRadius: 50,
+              sectionsSpace: 2,
+              sections:
+                  data.map((item) {
+                    return PieChartSectionData(
+                      color: item['color'],
+                      value: item['amount'].toDouble(),
+                      title: '',
+                      radius: 50,
+                    );
+                  }).toList(),
+            ),
+          ),
+        ),
+        Center(
+          child: Text(
+            '${formatter.format(total)} ₫',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...data.map(
+          (item) => Card(
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: item['color'],
+                child: Icon(item['icon'], color: Colors.white),
+              ),
+              title: Text(item['label']),
+              subtitle: Text('${item['percent']}%'),
+              trailing: Text('${formatter.format(item['amount'])} ₫'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 80), // tránh bị che bởi FAB
+      ],
+    );
+  }
 }
 
-Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(
+Map<String, Map<String, List<Map<String, dynamic>>>> groupSpendModelsByTime(
   List<SpendModel> spends,
 ) {
-  final now = DateTime.now();
-
-  bool isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-  bool isSameMonth(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month;
-  bool isSameYear(DateTime a, DateTime b) => a.year == b.year;
-
-  final categoryMap = {
+  final Map<int, Map<String, dynamic>> categoryMap = {
     1: {
       'label': 'Ăn uống',
       'color': Colors.redAccent,
@@ -229,48 +407,61 @@ Map<String, List<Map<String, dynamic>>> convertSpendModelsToDataByTab(
     9: {'label': 'Khác', 'color': Colors.grey, 'icon': Icons.more_horiz},
   };
 
-  // Lọc spends theo type == 1 trước
-  final filteredSpends =
-      spends.where((s) => s.type == TypeTransaction.SPEND).toList();
-
-  // Lọc chi tiêu theo từng tab dựa trên filteredSpends
-  Map<String, List<SpendModel>> spendsByTab = {
-    'Ngày': filteredSpends.where((s) => isSameDay(s.date, now)).toList(),
-    'Tháng': filteredSpends.where((s) => isSameMonth(s.date, now)).toList(),
-    'Năm': filteredSpends.where((s) => isSameYear(s.date, now)).toList(),
+  Map<String, Map<String, List<SpendModel>>> grouped = {
+    'Ngày': {},
+    'Tháng': {},
+    'Năm': {},
   };
 
-  Map<String, List<Map<String, dynamic>>> dataByTab = {};
+  for (var s in spends) {
+    String dayKey = DateFormat('yyyy-MM-dd').format(s.date);
+    String monthKey = DateFormat('yyyy-MM-01').format(s.date);
+    String yearKey = s.date.year.toString();
 
-  for (String tab in spendsByTab.keys) {
-    final tabSpends = spendsByTab[tab]!;
-
-    final totalAmount = tabSpends.fold(0, (sum, s) => sum + s.amount);
-
-    final Map<int, int> amountByCategory = {};
-    for (var s in tabSpends) {
-      amountByCategory[s.category] =
-          (amountByCategory[s.category] ?? 0) + s.amount;
-    }
-
-    final List<Map<String, dynamic>> categoryList =
-        amountByCategory.entries.map((entry) {
-          final id = entry.key;
-          final amount = entry.value;
-          final percent =
-              totalAmount > 0 ? (amount * 100 / totalAmount).round() : 0;
-          final category = categoryMap[id] ?? categoryMap[9]!; // fallback: Khác
-          return {
-            'label': category['label'],
-            'percent': percent,
-            'amount': amount,
-            'color': category['color'],
-            'icon': category['icon'],
-          };
-        }).toList();
-
-    dataByTab[tab] = categoryList;
+    grouped['Ngày']!.putIfAbsent(dayKey, () => []).add(s);
+    grouped['Tháng']!.putIfAbsent(monthKey, () => []).add(s);
+    grouped['Năm']!.putIfAbsent(yearKey, () => []).add(s);
   }
 
-  return dataByTab;
+  Map<String, Map<String, List<Map<String, dynamic>>>> result = {};
+
+  grouped.forEach((tab, mapByKey) {
+    Map<String, List<Map<String, dynamic>>> tabData = {};
+    for (var key in mapByKey.keys) {
+      List<SpendModel> items = mapByKey[key]!;
+      int total = items.fold(0, (sum, s) => sum + s.amount);
+
+      Map<int, int> amountByCategory = {};
+      for (var s in items) {
+        amountByCategory[s.category] =
+            (amountByCategory[s.category] ?? 0) + s.amount;
+      }
+
+      List<Map<String, dynamic>> data =
+          amountByCategory.entries.map((entry) {
+            final id = entry.key;
+            final amount = entry.value;
+            final percent = total > 0 ? (amount * 100 / total).round() : 0;
+            final category = categoryMap[id] ?? categoryMap[9]!;
+
+            return {
+              'label': category['label'],
+              'percent': percent,
+              'amount': amount,
+              'color': category['color'],
+              'icon': category['icon'],
+            };
+          }).toList();
+
+      tabData[key] = data;
+    }
+
+    final sortedTabData = Map.fromEntries(
+      tabData.entries.toList()..sort((a, b) => b.key.compareTo(a.key)),
+    );
+
+    result[tab] = sortedTabData;
+  });
+
+  return result;
 }
