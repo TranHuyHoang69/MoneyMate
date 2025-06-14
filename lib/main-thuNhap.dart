@@ -58,7 +58,6 @@ class _ChiPhiTabState extends State<ThuNhapTab>
               .toList()
             ..sort();
 
-      // Đặt ngày được chọn mặc định là ngày gần nhất có dữ liệu
       if (availableDatesNgay.isNotEmpty)
         selectedDateNgay = availableDatesNgay.last;
       if (availableDatesThang.isNotEmpty)
