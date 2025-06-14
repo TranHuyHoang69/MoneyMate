@@ -8,6 +8,8 @@ import 'chiTietGiaoDich/chiTietGiaoDich.dart';
 import 'model/spend_model.dart';
 
 class ThuNhapTab extends StatefulWidget {
+  const ThuNhapTab({super.key, required this.reloadNotifier});
+  final dynamic reloadNotifier;
   @override
   State<ThuNhapTab> createState() => _ChiPhiTabState();
 }
@@ -65,6 +67,7 @@ class _ChiPhiTabState extends State<ThuNhapTab>
       if (availableDatesNam.isNotEmpty)
         selectedDateNam = availableDatesNam.last;
     });
+    widget.reloadNotifier.value = !widget.reloadNotifier.value;
   }
 
   Future<List<SpendModel>> fetchSpendsFromService() async {
@@ -214,7 +217,11 @@ class _ChiPhiTabState extends State<ThuNhapTab>
                                     },
                                   ),
                             ),
-                          );
+                          ).then((result) {
+                            if (result == true) {
+                              loadData();
+                            }
+                          });
                         },
                       ),
                     );
