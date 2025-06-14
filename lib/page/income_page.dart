@@ -6,7 +6,6 @@ import 'package:money_mate/constant/type_transaction.dart';
 import '../model/spend_model.dart';
 import '../model/spend_service.dart';
 
-
 class IncomePage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _IncomePageState();
@@ -16,19 +15,18 @@ class _IncomePageState extends State<IncomePage> {
   int _selectedCategory = options[0].category;
   //controller
   TextEditingController _dateController = TextEditingController();
-  TextEditingController _amountController=TextEditingController();
-  TextEditingController _noteController=TextEditingController();
+  TextEditingController _amountController = TextEditingController();
+  TextEditingController _noteController = TextEditingController();
 
   //spend service
-  final SpendService _spendService=SpendService();
-
+  final SpendService _spendService = SpendService();
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       //   padding: EdgeInsets.all(16), Padding(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20,horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 5),
         child: Column(
           children: [
             // const Text("Nhập số tiền thu nhập:",
@@ -52,12 +50,17 @@ class _IncomePageState extends State<IncomePage> {
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: InputDecoration(
                         hintText: '0',
                         filled: true,
                         fillColor: Colors.grey.shade300,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -68,12 +71,15 @@ class _IncomePageState extends State<IncomePage> {
                         ),
                       ),
                     ),
-
                   ),
                   const SizedBox(width: 12),
                   const Text(
                     'VND',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
@@ -86,22 +92,21 @@ class _IncomePageState extends State<IncomePage> {
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 "Danh mục",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
 
             const SizedBox(height: 10),
-            IconSelector(onCategorySelected: (category) {
-              _selectedCategory = category;
-            },),
+            IconSelector(
+              onCategorySelected: (category) {
+                _selectedCategory = category;
+              },
+            ),
 
             const SizedBox(height: 10),
 
             Container(
-              margin: EdgeInsets.symmetric(vertical: 0,horizontal: 0),
+              margin: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
               child: TextField(
                 controller: _dateController,
                 readOnly: true,
@@ -110,13 +115,14 @@ class _IncomePageState extends State<IncomePage> {
                 },
                 decoration: InputDecoration(
                   labelText: 'Thời gian',
-                  labelStyle: TextStyle(
-                      color: Colors.blue
-                  ),
+                  labelStyle: TextStyle(color: Colors.blue),
                   prefixIcon: Icon(Icons.calendar_today, color: Colors.blue),
                   filled: true,
                   fillColor: Colors.grey.shade300,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.transparent),
@@ -131,14 +137,10 @@ class _IncomePageState extends State<IncomePage> {
               ),
             ),
 
-
             const SizedBox(height: 30),
             const Text(
               "Ghi chú",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -156,41 +158,51 @@ class _IncomePageState extends State<IncomePage> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Colors.blue),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
               ),
             ),
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton(
-                onPressed:(){
-                  if(_amountController.text.isEmpty || _dateController.text.isEmpty || _noteController.text.isEmpty){
+                onPressed: () {
+                  if (_amountController.text.isEmpty ||
+                      _dateController.text.isEmpty ||
+                      _noteController.text.isEmpty) {
                     Fluttertoast.showToast(
-                        msg: "Vui lòng nhập đủ thông tin",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        backgroundColor: Colors.blue,
-                        textColor: Colors.white,
-                        fontSize: 13.0
+                      msg: "Vui lòng nhập đủ thông tin",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.blue,
+                      textColor: Colors.white,
+                      fontSize: 13.0,
                     );
-                  }else{
-                    var newSpend=new SpendModel(
-                        amount: int.parse(_amountController.text.trim().toString()),
-                        category: _selectedCategory,
-                        date: DateTime.parse(_dateController.text.trim().toString()),
-                        note: _noteController.text.trim().toString(),
-                        type: TypeTransaction.INCOME);
+                  } else {
+                    var newSpend = new SpendModel(
+                      amount: int.parse(
+                        _amountController.text.trim().toString(),
+                      ),
+                      category: _selectedCategory,
+                      date: DateTime.parse(
+                        _dateController.text.trim().toString(),
+                      ),
+                      note: _noteController.text.trim().toString(),
+                      type: TypeTransaction.INCOME,
+                    );
                     _spendService.addSpend(newSpend);
                     Fluttertoast.showToast(
-                        msg: "Thêm thành công",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        backgroundColor: Colors.blue,
-                        textColor: Colors.white,
-                        fontSize: 13.0
+                      msg: "Thêm thành công",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.blue,
+                      textColor: Colors.white,
+                      fontSize: 13.0,
                     );
-                    Navigator.pop(context,true);
+                    Navigator.pop(context, true);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -199,8 +211,14 @@ class _IncomePageState extends State<IncomePage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 100,
+                    vertical: 16,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 child: const Text('Thêm'),
               ),
@@ -225,39 +243,34 @@ class _IncomePageState extends State<IncomePage> {
       });
     }
   }
-
-
 }
 
 class IconOption {
   final IconData icon;
   final String label;
   final int category;
-  IconOption(this.icon, this.label,this.category);
+  IconOption(this.icon, this.label, this.category);
 }
 
 final List<IconOption> options = [
-  IconOption(Icons.paid, "Phiếu lương",1),
-  IconOption(Icons.card_giftcard, "Quà tặng",2),
-  IconOption(Icons.interests, "Sở thích",3),
-  IconOption(Icons.help, "Khác",4),
+  IconOption(Icons.paid, "Phiếu lương", 1),
+  IconOption(Icons.card_giftcard, "Quà tặng", 2),
+  IconOption(Icons.interests, "Sở thích", 3),
+  IconOption(Icons.help, "Khác", 4),
 ];
 
 class IconSelector extends StatefulWidget {
-
   final Function(int category) onCategorySelected; // nhận callback
 
   const IconSelector({super.key, required this.onCategorySelected});
 
   // const IconSelector({super.key});
 
-
   @override
   State<IconSelector> createState() => _IconSelectorState();
-
 }
-class _IconSelectorState extends State<IconSelector> {
 
+class _IconSelectorState extends State<IconSelector> {
   int? selectedLabel;
 
   @override
@@ -278,50 +291,56 @@ class _IconSelectorState extends State<IconSelector> {
         child: Wrap(
           spacing: 24,
           runSpacing: 12,
-          children: options.map((item) {
-            final isSelected = selectedLabel == item.category;
+          children:
+              options.map((item) {
+                final isSelected = selectedLabel == item.category;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedLabel = item.category;
-                  widget.onCategorySelected(selectedLabel!);
-                });
-                // print("Bạn chọn: ${item.label}");
-              },
-              child: Container(
-                width: 80,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue.shade100 : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      item.icon,
-                      size: 40,
-                      color: isSelected ? Colors.blue : Colors.grey,
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedLabel = item.category;
+                      widget.onCategorySelected(selectedLabel!);
+                    });
+                    // print("Bạn chọn: ${item.label}");
+                  },
+                  child: Container(
+                    width: 80,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? Colors.blue.shade100
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? Colors.blue : Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 40,
+                          color: isSelected ? Colors.blue : Colors.grey,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                            color: isSelected ? Colors.blue : Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+                  ),
+                );
+              }).toList(),
         ),
       ),
     );
   }
-
 }
