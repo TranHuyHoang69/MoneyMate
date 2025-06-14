@@ -8,12 +8,15 @@ import 'chiTietGiaoDich/chiTietGiaoDich.dart';
 import 'model/spend_model.dart';
 
 class ChiPhiTab extends StatefulWidget {
+  const ChiPhiTab({super.key, required this.reloadNotifier});
+  final dynamic reloadNotifier;
   @override
   State<ChiPhiTab> createState() => _ChiPhiTabState();
 }
 
 class _ChiPhiTabState extends State<ChiPhiTab>
     with SingleTickerProviderStateMixin {
+
   DateTime selectedDate = DateTime.now();
   DateTime selectedMonth = DateTime.now();
   int selectedYear = DateTime.now().year;
@@ -113,6 +116,7 @@ class _ChiPhiTabState extends State<ChiPhiTab>
   }
 
   Future<void> loadData() async {
+
     List<SpendModel> spends = await SpendService().getAllSpends();
     spends = spends.where((s) => s.type == TypeTransaction.SPEND).toList();
     final data = groupSpendModelsByTime(spends);
@@ -125,8 +129,9 @@ class _ChiPhiTabState extends State<ChiPhiTab>
         currentDayIndex = 0;
       }
     });
+    widget.reloadNotifier.value = !widget.reloadNotifier.value;
   }
-
+  final formatterMoney = NumberFormat.decimalPattern();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -355,6 +360,11 @@ class _ChiPhiTabState extends State<ChiPhiTab>
         const SizedBox(height: 10),
         ...data.map(
           (item) => Card(
+            elevation: 2,
+            margin: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: item['color'],
@@ -362,7 +372,35 @@ class _ChiPhiTabState extends State<ChiPhiTab>
               ),
               title: Text(item['label']),
               subtitle: Text('${item['percent']}%'),
-              trailing: Text('${formatter.format(item['amount'])} ₫'),
+              trailing: Text(
+                '${formatterMoney.format(item['amount'])} ₫',
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => TransactionDetailScreen(
+                      transaction: {
+                        'amount': item['amount'].toString(),
+                        'category': item['label'],
+                        'date': DateFormat(
+                          'dd/MM/yyyy',
+                        ).format(selectedDate),
+                        'time': DateFormat(
+                          'HH:mm',
+                        ).format(DateTime.now()),
+                        'type': 'Chi phí',
+                      },
+                    ),
+                  ),
+                ).then((result) {
+                  if (result == true) {
+                    print("hahaha");
+                    loadData();
+                  }
+                });
+              },
             ),
           ),
         ),

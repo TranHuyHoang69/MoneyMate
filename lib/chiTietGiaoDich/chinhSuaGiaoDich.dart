@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final Map<String, String> transaction;
@@ -10,6 +11,7 @@ class EditTransactionScreen extends StatefulWidget {
 }
 
 class _EditTransactionScreenState extends State<EditTransactionScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _amountController;
   late TextEditingController _categoryController;
   late TextEditingController _dateController;
@@ -19,14 +21,14 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(
-      text: widget.transaction['amount'],
-    );
-    _categoryController = TextEditingController(
-      text: widget.transaction['category'],
-    );
-    _dateController = TextEditingController(text: widget.transaction['date']);
-    _timeController = TextEditingController(text: widget.transaction['time']);
+    _amountController =
+        TextEditingController(text: widget.transaction['amount'] ?? '');
+    _categoryController =
+        TextEditingController(text: widget.transaction['category'] ?? '');
+    _dateController =
+        TextEditingController(text: widget.transaction['date'] ?? '');
+    _timeController =
+        TextEditingController(text: widget.transaction['time'] ?? '');
     _selectedType = widget.transaction['type'] ?? 'Chi tiêu';
   }
 
@@ -39,134 +41,115 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     super.dispose();
   }
 
-  void _saveChanges(BuildContext context) {
-    final updatedTransaction = {
-      'amount': _amountController.text,
-      'category': _categoryController.text,
-      'date': _dateController.text,
-      'time': _timeController.text,
-      'type': _selectedType,
-    };
+  void _saveChanges() {
+    if (_formKey.currentState!.validate()) {
+      final updatedTransaction = {
+        'amount': _amountController.text,
+        'category': _categoryController.text,
+        'date': _dateController.text,
+        'time': _timeController.text,
+        'type': _selectedType,
+      };
 
-    Navigator.pop(context, updatedTransaction);
+      Navigator.pop(context, updatedTransaction);
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final initialDate = DateFormat('dd/MM/yyyy').parse(_dateController.text);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final initialTime = DateFormat('HH:mm').parse(_timeController.text);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialTime),
+    );
+
+    if (picked != null) {
+      final dt = DateFormat.jm().parse(picked.format(context));
+      _timeController.text = DateFormat('HH:mm').format(dt);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final disabledStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
+      color: Colors.grey,
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sửa giao dịch'),
+        title: const Text('Chỉnh sửa giao dịch'),
         backgroundColor: Colors.teal,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: ListView(
             children: [
-              TextField(
+              TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Số tiền',
-                  border: OutlineInputBorder(),
-                ),
                 keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Số tiền'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập số tiền';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Số tiền không hợp lệ';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 15),
-              TextField(
+              TextFormField(
                 controller: _categoryController,
-                decoration: const InputDecoration(
-                  labelText: 'Danh mục',
-                  border: OutlineInputBorder(),
-                ),
+                enabled: false,
+                style: disabledStyle,
+                decoration: const InputDecoration(labelText: 'Danh mục'),
               ),
-              const SizedBox(height: 15),
-              TextField(
+              TextFormField(
                 controller: _dateController,
-                decoration: const InputDecoration(
-                  labelText: 'Ngày',
-                  border: OutlineInputBorder(),
-                ),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _dateController.text =
-                          '${pickedDate.day} tháng ${pickedDate.month}, ${pickedDate.year}';
-                    });
-                  }
-                },
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Ngày'),
+                onTap: _pickDate,
               ),
-              const SizedBox(height: 15),
-              TextField(
+              TextFormField(
                 controller: _timeController,
-                decoration: const InputDecoration(
-                  labelText: 'Thời gian',
-                  border: OutlineInputBorder(),
-                ),
-                onTap: () async {
-                  TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      _timeController.text = pickedTime.format(context);
-                    });
-                  }
-                },
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Thời gian'),
+                onTap: _pickTime,
               ),
-              const SizedBox(height: 15),
-              DropdownButtonFormField<String>(
-                value: _selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Loại',
-                  border: OutlineInputBorder(),
-                ),
-                items:
-                    ['Chi tiêu', 'Thu nhập']
-                        .map(
-                          (type) => DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedType = value!;
-                  });
-                },
+              const SizedBox(height: 10),
+              TextFormField(
+                initialValue: _selectedType,
+                enabled: false,
+                style: disabledStyle,
+                decoration: const InputDecoration(labelText: 'Loại giao dịch'),
               ),
               const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => _saveChanges(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ),
-                  child: const Text(
-                    'LƯU',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              ElevatedButton(
+                onPressed: _saveChanges,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-              ),
+                child: const Text(
+                  'Lưu thay đổi',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              )
             ],
           ),
         ),
