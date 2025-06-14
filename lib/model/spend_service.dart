@@ -158,10 +158,10 @@ class SpendService{
 
     spendToUpdate.amount = int.parse(newTransaction['amount']!);
     spendToUpdate.date = fullDateTime;
-    spendToUpdate.category =options.firstWhere(
-          (option) => option.label == newTransaction['category'],
-      orElse: () => IconOption(Icons.help, "Khác", 4),
-    ).id;
+    // spendToUpdate.category =options.firstWhere(
+    //       (option) => option.label == newTransaction['category'],
+    //   orElse: () => IconOption(Icons.help, "Khác", 4),
+    // ).id;
     spendToUpdate.note = newTransaction['category']!;
     spendToUpdate.type = newTransaction['type'] == 'Thu nhập' ? 2 : 1;
 

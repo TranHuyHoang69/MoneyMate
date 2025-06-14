@@ -7,6 +7,7 @@ import 'chinhSuaGiaoDich.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final Map<String, String>? transaction;
+
   const TransactionDetailScreen({super.key, this.transaction});
 
   @override
@@ -54,13 +55,13 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
   void _handleEdit(BuildContext context) async {
     final transactionData =
-    _transactionData.isNotEmpty ? _transactionData : getArguments(context);
+        _transactionData.isNotEmpty ? _transactionData : getArguments(context);
     if (transactionData != null) {
       final updatedTransaction = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              EditTransactionScreen(transaction: _transactionData),
+          builder:
+              (context) => EditTransactionScreen(transaction: _transactionData),
         ),
       );
 
@@ -68,21 +69,21 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         setState(() {
           _transactionData = updatedTransaction;
         });
-        if(_transactionData['type']=="Chi Phí"){
+        if (_transactionData['type'] == "Chi phí") {
+          print("hai ac");
           await SpendService().updateSpendModelForSpend(
             oldTransaction: transactionData,
             newTransaction: updatedTransaction,
           );
-        }else{
+        } else {
           await SpendService().updateSpendModelForIncome(
             oldTransaction: transactionData,
             newTransaction: updatedTransaction,
           );
         }
-
       }
     }
-    Navigator.pop(context,true);
+    Navigator.pop(context, true);
   }
 
   SpendModel convertTransactionToSpendModel(Map<String, String> transaction) {
@@ -101,16 +102,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       category: transaction['category']!.hashCode,
       date: fullDateTime,
       note: transaction['category'] ?? '',
-      type: transaction['type'] == 'Chi phí'
-          ? TypeTransaction.SPEND
-          : TypeTransaction.INCOME,
+      type:
+          transaction['type'] == 'Chi phí'
+              ? TypeTransaction.SPEND
+              : TypeTransaction.INCOME,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final transactionData =
-    _transactionData.isNotEmpty ? _transactionData : getArguments(context);
+        _transactionData.isNotEmpty ? _transactionData : getArguments(context);
 
     if (transactionData == null || transactionData.isEmpty) {
       return Scaffold(
@@ -170,9 +172,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   _buildDetailRow(
                     'Ghi chú',
                     transactionData['type'] ?? 'Không có dữ liệu',
-                    valueColor: transactionData['type'] == 'Chi tiêu'
-                        ? Colors.red
-                        : Colors.green,
+                    valueColor:
+                        transactionData['type'] == 'Chi tiêu'
+                            ? Colors.red
+                            : Colors.green,
                   ),
                 ],
               ),
@@ -253,6 +256,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
   Future<void> _deleteSpendModel() async {
     final spendBox = await SpendService().getBox();
+
     final allSpends = spendBox.values.toList().cast<SpendModel>();
 
     final amount = int.tryParse(_transactionData['amount'] ?? '');
@@ -260,31 +264,39 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     final typeStr = _transactionData['type'];
 
     if (amount != null && dateStr != null && typeStr != null) {
-      final type = typeStr == 'Chi tiêu'
-          ? TypeTransaction.SPEND
-          : TypeTransaction.INCOME;
+      final type =
+          typeStr == 'Chi phí' ? TypeTransaction.SPEND : TypeTransaction.INCOME;
 
       final date = DateTime.tryParse(dateStr.split('/').reversed.join('-'));
+      print(type);
+      print(date?.year.toString());
+      print(date?.month.toString());
+      print(date?.day.toString());
 
       if (date != null) {
+        print("null a");
         final spendToDelete = allSpends.firstWhere(
-              (s) =>
-          s.amount == amount &&
+          (s) =>
+              s.amount == amount &&
               s.type == type &&
               s.date.year == date.year &&
               s.date.month == date.month &&
               s.date.day == date.day,
-          orElse: () => SpendModel(
-              amount: 0,
-              date: DateTime(2000),
-              category: 0,
-              note: '',
-              type: 1),
+          orElse:
+              () => SpendModel(
+                amount: 0,
+                date: DateTime(2000),
+                category: 0,
+                note: '',
+                type: 1,
+              ),
         );
 
+        print(spendToDelete.amount);
         if (spendToDelete.amount != 0) {
           final key = spendToDelete.key;
           if (key != null) {
+
             await spendBox.delete(key);
             if (mounted) {
               Navigator.of(context).pop();
